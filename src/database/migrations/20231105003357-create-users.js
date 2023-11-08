@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      itdentityCard: {
+      identityCard: {
         type: Sequelize.INTEGER
       },
       name: {

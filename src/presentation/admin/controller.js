@@ -23,11 +23,11 @@ const getAdministrators = async (req, res = response) => {
 
 const createAdministrator = async (req, res = response) => {
   try {
-    const person = new db.person(req.body);
-    await person.save();
+    const user = new db.user(req.body);
+    await user.save();
     return res.json({
       ok: true,
-      person,
+      user,
       msg: 'administrador registrado exitosamente'
     });
   } catch (error) {
