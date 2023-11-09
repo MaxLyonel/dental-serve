@@ -36,7 +36,7 @@ module.exports = {
       },
       superAdmin: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true
+        defaultValue: false
       },
       createdAt: {
         allowNull: false,
