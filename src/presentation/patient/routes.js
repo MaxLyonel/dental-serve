@@ -1,13 +1,13 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const { validateFields, validarJWT } = require('../../config');
-const { getAdministrators, createAdministrator, updateAdministrator, deleteAdministrator } = require('./controller');
+const { getPatients, createPatient, updatePatient, deletePatient } = require('./controller');
 
 const router = Router();
 
 // router.use(validarJWT);
 
-router.get('/', getAdministrators)
+router.get('/', getPatients)
 
 router.post(
   '/',
@@ -19,15 +19,16 @@ router.post(
     check('phone', 'El email es obligatorio').isMobilePhone(),
     check('birthDate', 'El rol es obligatorio').not().isDate(),
     check('gender', 'El rol es obligatorio').not().isEmpty(),
-    // administrator
-    check('roleId', 'El rol es obligatorio').not().isEmpty(),
+    // paciente
+    check('allergies', 'El rol es obligatorio').not().isEmpty(),
+    check('bloodType', 'El rol es obligatorio').not().isEmpty(),
     validateFields
   ],
-  createAdministrator
+  createPatient
 );
 
 router.put(
-  '/:administratorId',
+  '/:patientId',
   [
     // user
     check('identityCard', 'El nombre es obligatorio').not().isEmpty(),
@@ -36,16 +37,17 @@ router.put(
     check('phone', 'El email es obligatorio').isMobilePhone(),
     check('birthDate', 'El rol es obligatorio').not().isDate(),
     check('gender', 'El rol es obligatorio').not().isEmpty(),
-    // administrator
-    check('roleId', 'El rol es obligatorio').not().isEmpty(),
+    // paciente
+    check('allergies', 'El rol es obligatorio').not().isEmpty(),
+    check('bloodType', 'El rol es obligatorio').not().isEmpty(),
     validateFields
   ],
-  updateAdministrator
+  updatePatient
 );
 
 router.delete(
-  '/:administratorId',
-  deleteAdministrator
+  '/:patientId',
+  deletePatient
 );
 
 

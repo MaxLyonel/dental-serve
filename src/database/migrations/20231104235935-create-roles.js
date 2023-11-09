@@ -16,7 +16,8 @@ module.exports = {
         type: Sequelize.STRING
       },
       state: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
       },
       createdAt: {
         allowNull: false,
