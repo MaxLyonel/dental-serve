@@ -14,6 +14,7 @@ router.post(
   [
     check('name', 'El nombre es obligatorio').not().isEmpty(),
     check('description', 'El apellido es obligatorio').not().isEmpty(),
+    check('permissionIds', 'permissionIds debe ser un array').isArray(),
     validateFields
   ],
   createRole
