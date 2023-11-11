@@ -12,12 +12,12 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       rolePermission.belongsTo(models.role, {
-        foreignKey: 'id',
-        target_key: 'roleId'
+        foreignKey: 'roleId',
+        targetKey: 'id'
       });
       rolePermission.belongsTo(models.permission, {
-        foreignKey: 'id',
-        target_key: 'permissionId'
+        foreignKey: 'permissionId',
+        targetKey: 'id'
       });
     }
   }

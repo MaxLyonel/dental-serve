@@ -11,12 +11,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      // permission.hasMany(models.rolePermission, {
-      //   foreignKey: 'roleId'
-      // })
-      // permission.hasMany(models.user, {
-      //   foreignKey: 'roleId'
-      // })
+      role.hasMany(models.rolePermission, {
+        foreignKey: 'roleId'
+      })
+      role.hasMany(models.administrator, {
+        foreignKey: 'roleId'
+      })
     }
   }
   role.init({

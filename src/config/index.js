@@ -1,2 +1,7 @@
-module.exports = { generarJWT, validarJWT } = require('./jwt');
-module.exports = { validateFields } = require('./validateFields');
+const validateFields = require('./validateFields');
+const generateJWT = require('./generateJwt');
+
+module.exports = {
+  ...validateFields,
+  ...generateJWT,
+}

@@ -1,11 +1,12 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { validateFields, validarJWT } = require('../../config');
+const { validateFields } = require('../../config');
+const { validateJWT } = require('./../middlewares');
 const { getAdministrators, createAdministrator, updateAdministrator, deleteAdministrator } = require('./controller');
 
 const router = Router();
 
-// router.use(validarJWT);
+router.use(validateJWT);
 
 router.get('/', getAdministrators)
 
