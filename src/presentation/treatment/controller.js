@@ -5,14 +5,6 @@ const { omit } = require("lodash");
 const getTreatment = async (treatmentId) => {
   const treatment = await db.treatment.findByPk(treatmentId, {
     include: [
-      {
-        model: db.administrator,
-        include: [
-          {
-            model: db.user
-          }
-        ]
-      },
       { model: db.stageType },
       {
         model: db.medicalHistory,
@@ -26,28 +18,36 @@ const getTreatment = async (treatmentId) => {
             ]
           }
         ]
+      },
+      {
+        model: db.thethTreatament,
+        include: [
+          { model: db.theth }
+        ]
       }
     ]
   });
-  return treatment;
-  // const rolesWithPermissions = role.rolePermissions.map(rolePermission =>
-  //   omit(rolePermission.toJSON(), ['roleId', 'permissionId'])
-  // );
-  // return ({ ...role.toJSON(), rolePermissions: rolesWithPermissions });
+  return ({
+    ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'medicalHistoryId', 'createdAt', 'updatedAt']),
+    stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
+    medicalHistory: ({
+      ...omit(treatment.medicalHistory.toJSON(), ['patientId', 'createdAt', 'updatedAt']),
+      patient: ({
+        ...omit(treatment.medicalHistory.patient.toJSON(), ['userId', 'responsableId', 'active', 'createdAt', 'updatedAt']),
+        user: omit(treatment.medicalHistory.patient.user.toJSON(), ['createdAt', 'updatedAt'])
+      })
+    }),
+    thethTreataments: treatment.thethTreataments.map(thethTreatament => ({
+      ...omit(thethTreatament.toJSON(), ['treatmentId', 'thethId', 'createdAt', 'updatedAt']),
+      theth: omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])
+    }))
+  });
 }
 
 const getTreatments = async (req, res = response) => {
   try {
     const treatments = await db.treatment.findAll({
       include: [
-        {
-          model: db.administrator,
-          include: [
-            {
-              model: db.user
-            }
-          ]
-        },
         { model: db.stageType },
         {
           model: db.medicalHistory,
@@ -61,18 +61,33 @@ const getTreatments = async (req, res = response) => {
               ]
             }
           ]
+        },
+        {
+          model: db.thethTreatament,
+          include: [
+            { model: db.theth }
+          ]
         }
       ]
     });
-    // const rolesWithPermissions = treatments.map(role => ({
-    //   ...role.toJSON(),
-    //   rolePermissions: role.rolePermissions.map(rolePermission =>
-    //     omit(rolePermission.toJSON(), ['roleId', 'permissionId'])
-    //   ),
-    // }));
+    const formatTreatments = await Promise.all([...treatments.map(treatment => ({
+      ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'medicalHistoryId', 'createdAt', 'updatedAt']),
+      stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
+      medicalHistory: ({
+        ...omit(treatment.medicalHistory.toJSON(), ['patientId', 'createdAt', 'updatedAt']),
+        patient: ({
+          ...omit(treatment.medicalHistory.patient.toJSON(), ['userId', 'responsableId', 'active', 'createdAt', 'updatedAt']),
+          user: omit(treatment.medicalHistory.patient.user.toJSON(), ['createdAt', 'updatedAt'])
+        })
+      }),
+      thethTreataments: treatment.thethTreataments.map(thethTreatament => ({
+        ...omit(thethTreatament.toJSON(), ['treatmentId', 'thethId', 'createdAt', 'updatedAt']),
+        theth: omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])
+      }))
+    }))]);
     return res.json({
       ok: true,
-      treatments: treatments,
+      treatments: formatTreatments,
     });
   } catch (error) {
     console.log(error)
@@ -95,8 +110,15 @@ const createTreatment = async (req, res = response) => {
     const treatment = new db.treatment(req.body);
     treatment.administratorId = administratorId;
     treatment.medicalHistoryId = medicalHistory.id;
-    console.log(treatment)
     await treatment.save();
+    //asignamos los dientes al tratamiento
+    await Promise.all(req.body.thethIds.map(async item => {
+      const thethTreatament = new db.thethTreatament({
+        treatmentId: treatment.id,
+        thethId: item
+      });
+      await thethTreatament.save();
+    }));
     return res.json({
       ok: true,
       role: await getTreatment(treatment.id),
@@ -112,51 +134,62 @@ const createTreatment = async (req, res = response) => {
 }
 
 const updateTreatment = async (req, res = response) => {
-  const { roleId } = req.params;
+  const { treatmentId } = req.params;
   try {
-    //encontramos al rol
-    const role = await db.role.findByPk(roleId);
-    if (!role) {
+    //encontramos el tratamiento
+    const treatment = await db.treatment.findByPk(treatmentId, {
+      include: [
+        {
+          model: db.thethTreatament,
+          include: [
+            { model: db.theth }
+          ]
+        }
+      ]
+    });
+    if (!treatment) {
       return res.status(404).json({
         ok: false,
-        msg: 'No se encontró el rol',
+        msg: 'No se encontró el tratamiento',
       });
     }
-    //modificamos el rol
-    await db.role.update(
+    //modificamos el tratamiento
+    await db.treatment.update(
       req.body,
-      { where: { id: roleId } }
+      {
+        where: { id: treatmentId },
+
+      }
     )
-    //encontramos todas las asignaciones existentes para el rol
-    const existingRolePermissions = await db.rolePermission.findAll({
-      where: { roleId: roleId },
+    //encontramos todas las asignaciones existentes para los dientes
+    const existingThethTreataments = await db.thethTreatament.findAll({
+      where: { treatmentId: treatmentId },
     });
-    //identificamos los permisos que deben eliminarse
-    const permissionsToDelete = existingRolePermissions.filter(
-      (rolePermission) => !req.body.permissionIds.includes(rolePermission.permissionId)
+    //identificamos los dientes que deben eliminarse
+    const thethsToDelete = existingThethTreataments.filter(
+      (thethTreatment) => !req.body.thethIds.includes(thethTreatment.thethId)
     );
-    //eliminamos las asignaciones de permisos que deben eliminarse
-    await Promise.all(permissionsToDelete.map(async (rolePermission) => {
-      await rolePermission.destroy();
-    })
-    );
+    //eliminamos las asignaciones de dientes que deben eliminarse
+    await Promise.all(thethsToDelete.map(async (thethTreatment) => {
+      await thethTreatment.destroy();
+    }));
     //modificamos la asignación si corresponde
-    await Promise.all(req.body.permissionIds.map(async item => {
-      //encontramos al permiso asignado
-      let rolePermission = await db.rolePermission.findOne({ where: { roleId: roleId, permissionId: item } })
-      if (!rolePermission) {
+    const theths = treatment.thethTreataments.map((thethTreatament) => thethTreatament.thethId);
+    await Promise.all(req.body.thethIds.map(async item => {
+      //encontramos al diente asignado
+      if (!theths.includes(item)) {
         //si no se encuentra; lo registramos
-        rolePermission = new db.rolePermission({
-          roleId: roleId,
-          permissionId: item
+        const thethTreatament = new db.thethTreatament({
+          treatmentId: treatmentId,
+          thethId: item
         });
-        await rolePermission.save();
+        await thethTreatament.save();
       }
     }));
     return res.json({
       ok: true,
-      role: await getRole(roleId),
-      msg: 'rol editado exitosamente'
+      role: await getTreatment(treatmentId),
+      msg: 'tratamiento editado exitosamente'
     });
   } catch (error) {
     console.log(error)
@@ -168,25 +201,25 @@ const updateTreatment = async (req, res = response) => {
 }
 
 const deleteTreatment = async (req, res = response) => {
-  const { roleId } = req.params;
+  const { treatmentId } = req.params;
   try {
-    //encontramos al rol
-    const role = await db.role.findByPk(roleId);
-    if (!role) {
+    //encontramos el tratamiento
+    const treatment = await db.treatment.findByPk(treatmentId);
+    if (!treatment) {
       return res.status(404).json({
         ok: false,
-        msg: 'No se encontró el rol',
+        msg: 'No se encontró el tratamiento',
       });
     }
-    //modificamos al rol
-    await db.role.update(
-      { state: false },
-      { where: { id: roleId } }
+    //modificamos el tratamiento
+    await db.treatment.update(
+      { state: 'cancelado' },
+      { where: { id: treatmentId } }
     );
     return res.json({
       ok: true,
-      role: await getRole(roleId),
-      msg: 'rol eliminado'
+      role: await getTreatment(treatmentId),
+      msg: 'tratamiento cancelado'
     });
   } catch (error) {
     console.log(error)

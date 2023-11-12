@@ -6,10 +6,41 @@ const getPatient = async (patientId) => {
   const patient = await db.patient.findByPk(patientId, {
     include: [
       { model: db.user },
+      {
+        model: db.medicalHistory,
+        include: [
+          {
+            model: db.treatment,
+            include: [
+              { model: db.stageType },
+              {
+                model: db.thethTreatament,
+                include: [
+                  { model: db.theth }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     ],
   });
 
-  return omit(patient.toJSON(), ['active', 'userId', 'responsableId']);
+  return ({
+    ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt']),
+    user: omit(patient.user.toJSON(), ['createdAt', 'updatedAt']),
+    medicalHistories: patient.medicalHistories.map(medicalHistory => ({
+      ...omit(medicalHistory.toJSON(), ['patientId', 'createdAt', 'updatedAt']),
+      treatments: medicalHistory.treatments.map(treatment => ({
+        ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'medicalHistoryId', 'createdAt', 'updatedAt']),
+        stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
+        thethTreataments: treatment.thethTreataments.map(thethTreatament => ({
+          ...omit(thethTreatament.toJSON(), ['treatmentId', 'thethId', 'createdAt', 'updatedAt']),
+          theth: omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])
+        }))
+      }))
+    }))
+  });
 }
 
 const getPatients = async (req, res = response) => {
@@ -18,11 +49,45 @@ const getPatients = async (req, res = response) => {
       where: { active: true },
       include: [
         { model: db.user },
+        {
+          model: db.medicalHistory,
+          include: [
+            {
+              model: db.treatment,
+              include: [
+                { model: db.stageType },
+                {
+                  model: db.thethTreatament,
+                  include: [
+                    { model: db.theth }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       ],
     });
+    const formatPatients = await Promise.all([...patients.map(async patient => ({
+      ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt']),
+      user: omit(patient.user.toJSON(), ['createdAt', 'updatedAt']),
+      medicalHistories: patient.medicalHistories.map(medicalHistory => ({
+        ...omit(medicalHistory.toJSON(), ['patientId', 'createdAt', 'updatedAt']),
+        treatments: medicalHistory.treatments.map(treatment => ({
+          ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'medicalHistoryId', 'createdAt', 'updatedAt']),
+          stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
+          thethTreataments: treatment.thethTreataments.map(thethTreatament => ({
+            ...omit(thethTreatament.toJSON(), ['treatmentId', 'thethId', 'createdAt', 'updatedAt']),
+            theth: omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])
+          }))
+        }))
+      }))
+    })
+    )]);
+
     return res.json({
       ok: true,
-      patients: patients.map(admin => omit(admin.toJSON(), ['active', 'userId', 'responsableId'])),
+      patients: formatPatients
     });
   } catch (error) {
     console.log(error)
@@ -34,7 +99,9 @@ const getPatients = async (req, res = response) => {
 }
 
 const createPatient = async (req, res = response) => {
-
+  //encontramos al administrador por el token
+  const administratorId = req.uid;
+  console.log(administratorId)
   try {
     //verificamos si existe el usuario
     let user = await db.user.findOne({ where: { identityCard: req.body.identityCard } });
@@ -54,7 +121,7 @@ const createPatient = async (req, res = response) => {
     //creamos al paciente
     patient = new db.patient();
     patient.userId = user.id;
-    patient.responsableId = 1;
+    patient.responsableId = administratorId;
     patient.allergies = req.body.allergies;
     patient.bloodType = req.body.bloodType;
     await patient.save();

@@ -15,10 +15,13 @@ const getRole = async (roleId) => {
       }
     ],
   });
-  const rolesWithPermissions = role.rolePermissions.map(rolePermission =>
-    omit(rolePermission.toJSON(), ['roleId', 'permissionId'])
-  );
-  return ({ ...role.toJSON(), rolePermissions: rolesWithPermissions });
+  return ({
+    ...omit(role.toJSON(), ['createdAt', 'updatedAt']),
+    rolePermissions: role.rolePermissions.map(rolePermission => ({
+      ...omit(rolePermission.toJSON(), ['roleId', 'permissionId', 'createdAt', 'updatedAt']),
+      permission: omit(rolePermission.permission.toJSON(), ['createdAt', 'updatedAt'])
+    }))
+  });
 }
 
 const getRoles = async (req, res = response) => {
@@ -35,12 +38,13 @@ const getRoles = async (req, res = response) => {
         }
       ]
     });
-    const rolesWithPermissions = roles.map(role => ({
-      ...role.toJSON(),
-      rolePermissions: role.rolePermissions.map(rolePermission =>
-        omit(rolePermission.toJSON(), ['roleId', 'permissionId'])
-      ),
-    }));
+    const rolesWithPermissions = await Promise.all(roles.map(role => ({
+      ...omit(role.toJSON(), ['createdAt', 'updatedAt']),
+      rolePermissions: role.rolePermissions.map(rolePermission => ({
+        ...omit(rolePermission.toJSON(), ['roleId', 'permissionId', 'createdAt', 'updatedAt']),
+        permission: omit(rolePermission.permission.toJSON(), ['createdAt', 'updatedAt'])
+      })),
+    })));
     return res.json({
       ok: true,
       roles: rolesWithPermissions,
@@ -85,7 +89,16 @@ const updateRole = async (req, res = response) => {
   const { roleId } = req.params;
   try {
     //encontramos al rol
-    const role = await db.role.findByPk(roleId);
+    const role = await db.role.findByPk(roleId, {
+      include: [
+        {
+          model: db.rolePermission,
+          include: [
+            { model: db.permission }
+          ]
+        }
+      ]
+    });
     if (!role) {
       return res.status(404).json({
         ok: false,
@@ -108,18 +121,19 @@ const updateRole = async (req, res = response) => {
     //eliminamos las asignaciones de permisos que deben eliminarse
     await Promise.all(permissionsToDelete.map(async (rolePermission) => {
       await rolePermission.destroy();
-    })
-    );
+    }));
     //modificamos la asignación si corresponde
+    const permissions = role.rolePermissions.map((rolePermission) => rolePermission.permissionId);
+    console.log(permissions)
     await Promise.all(req.body.permissionIds.map(async item => {
       //encontramos al permiso asignado
-      let rolePermission = await db.rolePermission.findOne({ where: { roleId: roleId, permissionId: item } })
-      if (!rolePermission) {
+      if (!permissions.includes(item)) {
         //si no se encuentra; lo registramos
-        rolePermission = new db.rolePermission({
+        const rolePermission = new db.rolePermission({
           roleId: roleId,
           permissionId: item
         });
+        console.log(rolePermission)
         await rolePermission.save();
       }
     }));

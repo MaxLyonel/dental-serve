@@ -32,7 +32,7 @@ router.put(
     check('stageTypeId', 'Es necesario el id de la etapa').not().isEmpty(),
     check('patientId', 'Es necesario el id del paciente').not().isEmpty(),
     check('description', 'Es necesario la descripción').not().isEmpty(),
-    check('date', 'Es necesario la fecha del tratamiento').isDate(),
+    check('date', 'Es necesario la fecha del tratamiento').not().isEmpty(),
     //theth
     check('thethIds', 'thethIds debe ser un array').isArray(),
     validateFields
