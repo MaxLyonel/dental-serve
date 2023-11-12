@@ -11,6 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      stageType.hasMany(models.treatment, {
+        foreignKey: 'stageTypeId'
+      });
     }
   }
   stageType.init({

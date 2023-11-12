@@ -9,10 +9,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      userId: {
+      administratorId: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'users',
+          model: 'administrators',
           key: 'id'
         },
         onDelete: 'CASCADE',
@@ -27,7 +27,7 @@ module.exports = {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE'
       },
-      medicalHistoriesId: {
+      medicalHistoryId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'medicalHistories',
@@ -43,8 +43,8 @@ module.exports = {
         type: Sequelize.DATE
       },
       state: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true
+        type: Sequelize.STRING,
+        defaultValue: 'Pendiente'
       },
       createdAt: {
         allowNull: false,

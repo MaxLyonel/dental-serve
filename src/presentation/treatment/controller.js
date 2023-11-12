@@ -2,48 +2,77 @@ const { response } = require('express');
 const db = require('../../database/models');
 const { omit } = require("lodash");
 
-const getRole = async (roleId) => {
-  const role = await db.role.findByPk(roleId, {
+const getTreatment = async (treatmentId) => {
+  const treatment = await db.treatment.findByPk(treatmentId, {
     include: [
       {
-        model: db.rolePermission,
+        model: db.administrator,
         include: [
           {
-            model: db.permission,
+            model: db.user
+          }
+        ]
+      },
+      { model: db.stageType },
+      {
+        model: db.medicalHistory,
+        include: [
+          {
+            model: db.patient,
+            include: [
+              {
+                model: db.user
+              }
+            ]
           }
         ]
       }
-    ],
+    ]
   });
-  const rolesWithPermissions = role.rolePermissions.map(rolePermission =>
-    omit(rolePermission.toJSON(), ['roleId', 'permissionId'])
-  );
-  return ({ ...role.toJSON(), rolePermissions: rolesWithPermissions });
+  return treatment;
+  // const rolesWithPermissions = role.rolePermissions.map(rolePermission =>
+  //   omit(rolePermission.toJSON(), ['roleId', 'permissionId'])
+  // );
+  // return ({ ...role.toJSON(), rolePermissions: rolesWithPermissions });
 }
 
-const getRoles = async (req, res = response) => {
+const getTreatments = async (req, res = response) => {
   try {
-    const roles = await db.role.findAll({
+    const treatments = await db.treatment.findAll({
       include: [
         {
-          model: db.rolePermission,
+          model: db.administrator,
           include: [
             {
-              model: db.permission
+              model: db.user
+            }
+          ]
+        },
+        { model: db.stageType },
+        {
+          model: db.medicalHistory,
+          include: [
+            {
+              model: db.patient,
+              include: [
+                {
+                  model: db.user
+                }
+              ]
             }
           ]
         }
       ]
     });
-    const rolesWithPermissions = roles.map(role => ({
-      ...role.toJSON(),
-      rolePermissions: role.rolePermissions.map(rolePermission =>
-        omit(rolePermission.toJSON(), ['roleId', 'permissionId'])
-      ),
-    }));
+    // const rolesWithPermissions = treatments.map(role => ({
+    //   ...role.toJSON(),
+    //   rolePermissions: role.rolePermissions.map(rolePermission =>
+    //     omit(rolePermission.toJSON(), ['roleId', 'permissionId'])
+    //   ),
+    // }));
     return res.json({
       ok: true,
-      roles: rolesWithPermissions,
+      treatments: treatments,
     });
   } catch (error) {
     console.log(error)
@@ -54,23 +83,24 @@ const getRoles = async (req, res = response) => {
   }
 }
 
-const createRole = async (req, res = response) => {
+const createTreatment = async (req, res = response) => {
   try {
-    //creamos el rol
-    const role = new db.role(req.body);
-    await role.save();
-    //asignamos los permisos al rol
-    await Promise.all(req.body.permissionIds.map(async item => {
-      const rolePermission = new db.rolePermission({
-        roleId: role.id,
-        permissionId: item
-      });
-      await rolePermission.save();
-    }));
+    //encontramos al administrador por el token
+    const administratorId = req.uid;
+    //encontramos el historial medico por el id del paciente
+    const { patientId } = req.body;
+    const medicalHistory = await db.medicalHistory.findOne({ where: { patientId: patientId } })
+    console.log(medicalHistory)
+    //creamos el tratamiento
+    const treatment = new db.treatment(req.body);
+    treatment.administratorId = administratorId;
+    treatment.medicalHistoryId = medicalHistory.id;
+    console.log(treatment)
+    await treatment.save();
     return res.json({
       ok: true,
-      role: await getRole(role.id),
-      msg: 'rol registrado exitosamente'
+      role: await getTreatment(treatment.id),
+      msg: 'tratamiento registrado exitosamente'
     });
   } catch (error) {
     console.log(error)
@@ -81,7 +111,7 @@ const createRole = async (req, res = response) => {
   }
 }
 
-const updateRole = async (req, res = response) => {
+const updateTreatment = async (req, res = response) => {
   const { roleId } = req.params;
   try {
     //encontramos al rol
@@ -137,7 +167,7 @@ const updateRole = async (req, res = response) => {
   }
 }
 
-const deleteRole = async (req, res = response) => {
+const deleteTreatment = async (req, res = response) => {
   const { roleId } = req.params;
   try {
     //encontramos al rol
@@ -168,8 +198,8 @@ const deleteRole = async (req, res = response) => {
 }
 
 module.exports = {
-  getRoles,
-  createRole,
-  updateRole,
-  deleteRole,
+  getTreatments,
+  createTreatment,
+  updateTreatment,
+  deleteTreatment,
 }

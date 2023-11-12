@@ -13,14 +13,14 @@ router.get('/', getAdministrators)
 router.post(
   '/',
   [
-    // user
+    //user
     check('identityCard', 'El nombre es obligatorio').not().isEmpty(),
     check('name', 'El nombre es obligatorio').not().isEmpty(),
     check('lastName', 'El apellido es obligatorio').not().isEmpty(),
     check('phone', 'El email es obligatorio').isMobilePhone(),
     check('birthDate', 'El rol es obligatorio').not().isDate(),
     check('gender', 'El rol es obligatorio').not().isEmpty(),
-    // administrator
+    //administrator
     check('roleId', 'El rol es obligatorio').not().isEmpty(),
     validateFields
   ],

@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       permission.hasMany(models.rolePermission, {
         foreignKey: 'permissionId'
-      })
+      });
     }
   }
   permission.init({

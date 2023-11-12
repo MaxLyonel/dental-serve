@@ -51,13 +51,18 @@ const createPatient = async (req, res = response) => {
         msg: 'El paciente ya se encuentra registrado',
       });
     }
-    //  creaciön de un paciente
+    //creamos al paciente
     patient = new db.patient();
     patient.userId = user.id;
     patient.responsableId = 1;
     patient.allergies = req.body.allergies;
     patient.bloodType = req.body.bloodType;
     await patient.save();
+
+    //creamos su historial medico
+    medicalhistory = new db.medicalHistory();
+    medicalhistory.patientId = patient.id
+    await medicalhistory.save();
 
     return res.json({
       ok: true,

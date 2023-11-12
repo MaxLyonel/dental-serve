@@ -13,10 +13,10 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       user.hasMany(models.patient, {
         foreignKey: 'userId'
-      })
+      });
       user.hasMany(models.patient, {
         foreignKey: 'responsableId'
-      })
+      });
     }
   }
   user.init({
