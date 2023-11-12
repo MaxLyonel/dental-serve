@@ -24,7 +24,8 @@ const getTreatment = async (treatmentId) => {
         include: [
           { model: db.theth }
         ]
-      }
+      },
+      { model: db.payment }
     ]
   });
   return ({
@@ -40,7 +41,8 @@ const getTreatment = async (treatmentId) => {
     thethTreataments: treatment.thethTreataments.map(thethTreatament => ({
       ...omit(thethTreatament.toJSON(), ['treatmentId', 'thethId', 'createdAt', 'updatedAt']),
       theth: omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])
-    }))
+    })),
+    payments: treatment.payments.map(payment => omit(payment.toJSON(), ['treatmentId', 'administratorId', 'updatedAt']))
   });
 }
 
@@ -67,7 +69,8 @@ const getTreatments = async (req, res = response) => {
           include: [
             { model: db.theth }
           ]
-        }
+        },
+        { model: db.payment }
       ]
     });
     const formatTreatments = await Promise.all([...treatments.map(treatment => ({
@@ -83,7 +86,8 @@ const getTreatments = async (req, res = response) => {
       thethTreataments: treatment.thethTreataments.map(thethTreatament => ({
         ...omit(thethTreatament.toJSON(), ['treatmentId', 'thethId', 'createdAt', 'updatedAt']),
         theth: omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])
-      }))
+      })),
+      payments: treatment.payments.map(payment => omit(payment.toJSON(), ['treatmentId', 'administratorId', 'updatedAt']))
     }))]);
     return res.json({
       ok: true,
@@ -119,6 +123,7 @@ const createTreatment = async (req, res = response) => {
       });
       await thethTreatament.save();
     }));
+    console.log('SE CREO TODO ')
     return res.json({
       ok: true,
       role: await getTreatment(treatment.id),

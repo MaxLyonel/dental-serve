@@ -8,6 +8,7 @@ const AppRoutes = async (app) => {
   app.use('/api/patient', require('./patient/routes'));
 
   app.use('/api/treatment', require('./treatment/routes'));
+  app.use('/api/payment', require('./payment/routes'))
 
   app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, './../public/index.html'))

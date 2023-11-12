@@ -23,6 +23,9 @@ module.exports = (sequelize, DataTypes) => {
       administrator.hasMany(models.treatment, {
         foreignKey: 'administratorId'
       });
+      administrator.hasMany(models.payment, {
+        foreignKey: 'administratorId'
+      });
     }
   }
   administrator.init({

@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       treatment.hasMany(models.thethTreatament, {
         foreignKey: 'treatmentId'
       });
-      treatment.hasMany(models.payments, {
+      treatment.hasMany(models.payment, {
         foreignKey: 'treatmentId'
       });
     }
@@ -37,6 +37,7 @@ module.exports = (sequelize, DataTypes) => {
     medicalHistoryId: DataTypes.INTEGER,
     description: DataTypes.STRING,
     date: DataTypes.DATE,
+    totalAmount: DataTypes.FLOAT,
     state: DataTypes.STRING
   }, {
     sequelize,

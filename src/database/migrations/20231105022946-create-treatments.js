@@ -42,6 +42,9 @@ module.exports = {
       date: {
         type: Sequelize.DATE
       },
+      totalAmount: {
+        type: Sequelize.FLOAT
+      },
       state: {
         type: Sequelize.STRING,
         defaultValue: 'Pendiente'

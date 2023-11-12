@@ -18,6 +18,15 @@ module.exports = {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE'
       },
+      administratorId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'administrators',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      },
       amount: {
         type: Sequelize.FLOAT
       },

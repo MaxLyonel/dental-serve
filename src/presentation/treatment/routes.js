@@ -18,6 +18,7 @@ router.post(
     check('patientId', 'Es necesario el id del paciente').not().isEmpty(),
     check('description', 'Es necesario la descripción').not().isEmpty(),
     check('date', 'Es necesario la fecha del tratamiento').not().isEmpty(),
+    check('totalAmount', 'Es necesario el monto total del tratamiento').isDecimal(),
     //theth
     check('thethIds', 'thethIds debe ser un array').isArray(),
     validateFields
@@ -33,6 +34,7 @@ router.put(
     check('patientId', 'Es necesario el id del paciente').not().isEmpty(),
     check('description', 'Es necesario la descripción').not().isEmpty(),
     check('date', 'Es necesario la fecha del tratamiento').not().isEmpty(),
+    check('totalAmount', 'Es necesario el monto total del tratamiento').isDecimal(),
     //theth
     check('thethIds', 'thethIds debe ser un array').isArray(),
     validateFields
