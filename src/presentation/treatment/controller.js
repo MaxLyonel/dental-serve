@@ -7,15 +7,10 @@ const getTreatment = async (treatmentId) => {
     include: [
       { model: db.stageType },
       {
-        model: db.medicalHistory,
+        model: db.patient,
         include: [
           {
-            model: db.patient,
-            include: [
-              {
-                model: db.user
-              }
-            ]
+            model: db.user
           }
         ]
       },
@@ -29,19 +24,13 @@ const getTreatment = async (treatmentId) => {
     ]
   });
   return ({
-    ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'medicalHistoryId', 'createdAt', 'updatedAt']),
+    ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'thethTreataments', 'createdAt', 'updatedAt']),
     stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
-    medicalHistory: ({
-      ...omit(treatment.medicalHistory.toJSON(), ['patientId', 'createdAt', 'updatedAt']),
-      patient: ({
-        ...omit(treatment.medicalHistory.patient.toJSON(), ['userId', 'responsableId', 'active', 'createdAt', 'updatedAt']),
-        user: omit(treatment.medicalHistory.patient.user.toJSON(), ['createdAt', 'updatedAt'])
-      })
+    patient: ({
+      ...omit(treatment.patient.toJSON(), ['userId', 'responsableId', 'active', 'createdAt', 'updatedAt']),
+      user: omit(treatment.patient.user.toJSON(), ['createdAt', 'updatedAt'])
     }),
-    thethTreataments: treatment.thethTreataments.map(thethTreatament => ({
-      ...omit(thethTreatament.toJSON(), ['treatmentId', 'thethId', 'createdAt', 'updatedAt']),
-      theth: omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])
-    })),
+    theths: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])),
     payments: treatment.payments.map(payment => omit(payment.toJSON(), ['treatmentId', 'administratorId', 'updatedAt']))
   });
 }
@@ -52,15 +41,10 @@ const getTreatments = async (req, res = response) => {
       include: [
         { model: db.stageType },
         {
-          model: db.medicalHistory,
+          model: db.patient,
           include: [
             {
-              model: db.patient,
-              include: [
-                {
-                  model: db.user
-                }
-              ]
+              model: db.user
             }
           ]
         },
@@ -74,19 +58,13 @@ const getTreatments = async (req, res = response) => {
       ]
     });
     const formatTreatments = await Promise.all([...treatments.map(treatment => ({
-      ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'medicalHistoryId', 'createdAt', 'updatedAt']),
+      ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'thethTreataments', 'createdAt', 'updatedAt']),
       stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
-      medicalHistory: ({
-        ...omit(treatment.medicalHistory.toJSON(), ['patientId', 'createdAt', 'updatedAt']),
-        patient: ({
-          ...omit(treatment.medicalHistory.patient.toJSON(), ['userId', 'responsableId', 'active', 'createdAt', 'updatedAt']),
-          user: omit(treatment.medicalHistory.patient.user.toJSON(), ['createdAt', 'updatedAt'])
-        })
+      patient: ({
+        ...omit(treatment.patient.toJSON(), ['userId', 'patientId', 'responsableId', 'active', 'createdAt', 'updatedAt']),
+        user: omit(treatment.patient.user.toJSON(), ['createdAt', 'updatedAt'])
       }),
-      thethTreataments: treatment.thethTreataments.map(thethTreatament => ({
-        ...omit(thethTreatament.toJSON(), ['treatmentId', 'thethId', 'createdAt', 'updatedAt']),
-        theth: omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])
-      })),
+      theths: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])),
       payments: treatment.payments.map(payment => omit(payment.toJSON(), ['treatmentId', 'administratorId', 'updatedAt']))
     }))]);
     return res.json({
@@ -106,14 +84,9 @@ const createTreatment = async (req, res = response) => {
   try {
     //encontramos al administrador por el token
     const administratorId = req.uid;
-    //encontramos el historial medico por el id del paciente
-    const { patientId } = req.body;
-    const medicalHistory = await db.medicalHistory.findOne({ where: { patientId: patientId } })
-    console.log(medicalHistory)
     //creamos el tratamiento
     const treatment = new db.treatment(req.body);
     treatment.administratorId = administratorId;
-    treatment.medicalHistoryId = medicalHistory.id;
     await treatment.save();
     //asignamos los dientes al tratamiento
     await Promise.all(req.body.thethIds.map(async item => {

@@ -19,8 +19,8 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'stageTypeId',
         targetKey: 'id'
       });
-      treatment.belongsTo(models.medicalHistory, {
-        foreignKey: 'medicalHistoryId',
+      treatment.belongsTo(models.patient, {
+        foreignKey: 'patientId',
         targetKey: 'id'
       });
       treatment.hasMany(models.thethTreatament, {
@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
   treatment.init({
     administratorId: DataTypes.INTEGER,
     stageTypeId: DataTypes.INTEGER,
-    medicalHistoryId: DataTypes.INTEGER,
+    patientId: DataTypes.INTEGER,
     description: DataTypes.STRING,
     date: DataTypes.DATE,
     totalAmount: DataTypes.FLOAT,

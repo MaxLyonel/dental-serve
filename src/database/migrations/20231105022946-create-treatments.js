@@ -27,10 +27,10 @@ module.exports = {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE'
       },
-      medicalHistoryId: {
+      patientId: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'medicalHistories',
+          model: 'patients',
           key: 'id'
         },
         onDelete: 'CASCADE',

@@ -16,17 +16,15 @@ const getRole = async (roleId) => {
     ],
   });
   return ({
-    ...omit(role.toJSON(), ['createdAt', 'updatedAt']),
-    rolePermissions: role.rolePermissions.map(rolePermission => ({
-      ...omit(rolePermission.toJSON(), ['roleId', 'permissionId', 'createdAt', 'updatedAt']),
-      permission: omit(rolePermission.permission.toJSON(), ['createdAt', 'updatedAt'])
-    }))
+    ...omit(role.toJSON(), ['createdAt', 'updatedAt', 'rolePermissions']),
+    permissionIds: role.rolePermissions.map(rolePermission => omit(rolePermission.permission.toJSON(), ['createdAt', 'updatedAt'])),
   });
 }
 
 const getRoles = async (req, res = response) => {
   try {
     const roles = await db.role.findAll({
+      where: { state: true },
       include: [
         {
           model: db.rolePermission,
@@ -39,11 +37,8 @@ const getRoles = async (req, res = response) => {
       ]
     });
     const rolesWithPermissions = await Promise.all(roles.map(role => ({
-      ...omit(role.toJSON(), ['createdAt', 'updatedAt']),
-      rolePermissions: role.rolePermissions.map(rolePermission => ({
-        ...omit(rolePermission.toJSON(), ['roleId', 'permissionId', 'createdAt', 'updatedAt']),
-        permission: omit(rolePermission.permission.toJSON(), ['createdAt', 'updatedAt'])
-      })),
+      ...omit(role.toJSON(), ['createdAt', 'updatedAt', 'rolePermissions']),
+      permissionIds: role.rolePermissions.map(rolePermission => omit(rolePermission.permission.toJSON(), ['createdAt', 'updatedAt'])),
     })));
     return res.json({
       ok: true,
