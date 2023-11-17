@@ -1,19 +1,66 @@
 const { response } = require('express');
 const db = require('../../database/models');
+const { omit } = require("lodash");
+const generateDocument = require('./../../config/generatePdf');
+
+const getPayment = async (paymentId) => {
+  const payment = await db.payment.findByPk(paymentId, {
+    include: [
+      {
+        model: db.treatment,
+        include: [
+          {
+            model: db.patient,
+            include: [
+              { model: db.user }
+            ]
+          }
+        ]
+      },
+      {
+        model: db.administrator,
+        include: [
+          { model: db.user }
+        ]
+      }
+    ],
+  });
+  return ({
+    ...omit(payment.toJSON(), ['updatedAt']),
+  });
+}
 
 const createPayment = async (req, res = response) => {
   try {
     //encontramos al administrador por el token
     const administratorId = req.uid;
     //regstramos el pago
-    const payment = new db.payment(req.body);
-    payment.administratorId = administratorId;
-    await payment.save();
+    const newPayment = new db.payment(req.body);
+    newPayment.administratorId = administratorId;
+    await newPayment.save();
+    //obtenemos la informacion del pago
+    const payment = await getPayment(newPayment.id);
 
+    const body = {
+      customer: {
+        name: `${payment.treatment.patient.user.name} ${payment.treatment.patient.user.lastName}`,
+        identityCard: payment.treatment.patient.user.identityCard
+      },
+      user: {
+        name: `${payment.administrator.user.name} ${payment.administrator.user.lastName}`
+      },
+      reason: payment.treatment.description,
+      date: payment.createdAt,
+      amount: payment.amount,
+      discount: payment.discount,
+    }
+    console.log(body)
+    const { pdfBase64 } = await generateDocument(body);
     return res.json({
       ok: true,
       payment: payment,
-      msg: 'pago registrado exitosamente'
+      msg: 'pago registrado exitosamente',
+      document: pdfBase64
     });
   } catch (error) {
     console.log(error)

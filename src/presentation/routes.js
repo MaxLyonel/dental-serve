@@ -8,9 +8,10 @@ const AppRoutes = async (app) => {
   app.use('/api/role', require('./role/routes'));
   app.use('/api/administrator', require('./admin/routes'));
   app.use('/api/patient', require('./patient/routes'));
-
+  app.use('/api/stagetype', require('./stageType/routes'));
   app.use('/api/treatment', require('./treatment/routes'));
-  app.use('/api/payment', require('./payment/routes'))
+  app.use('/api/payment', require('./payment/routes'));
+  app.use('/api/theth', require('./theth/routes'));
 
   app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, './../public/index.html'))

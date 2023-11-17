@@ -30,7 +30,7 @@ const getTreatment = async (treatmentId) => {
       ...omit(treatment.patient.toJSON(), ['userId', 'responsableId', 'active', 'createdAt', 'updatedAt']),
       user: omit(treatment.patient.user.toJSON(), ['createdAt', 'updatedAt'])
     }),
-    theths: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])),
+    thethIds: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])),
     payments: treatment.payments.map(payment => omit(payment.toJSON(), ['treatmentId', 'administratorId', 'updatedAt']))
   });
 }
@@ -64,7 +64,7 @@ const getTreatments = async (req, res = response) => {
         ...omit(treatment.patient.toJSON(), ['userId', 'patientId', 'responsableId', 'active', 'createdAt', 'updatedAt']),
         user: omit(treatment.patient.user.toJSON(), ['createdAt', 'updatedAt'])
       }),
-      theths: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])),
+      thethIds: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt'])),
       payments: treatment.payments.map(payment => omit(payment.toJSON(), ['treatmentId', 'administratorId', 'updatedAt']))
     }))]);
     return res.json({
@@ -99,7 +99,7 @@ const createTreatment = async (req, res = response) => {
     console.log('SE CREO TODO ')
     return res.json({
       ok: true,
-      role: await getTreatment(treatment.id),
+      treatment: await getTreatment(treatment.id),
       msg: 'tratamiento registrado exitosamente'
     });
   } catch (error) {
@@ -166,7 +166,7 @@ const updateTreatment = async (req, res = response) => {
     }));
     return res.json({
       ok: true,
-      role: await getTreatment(treatmentId),
+      treatment: await getTreatment(treatmentId),
       msg: 'tratamiento editado exitosamente'
     });
   } catch (error) {
@@ -196,7 +196,7 @@ const deleteTreatment = async (req, res = response) => {
     );
     return res.json({
       ok: true,
-      role: await getTreatment(treatmentId),
+      treatment: await getTreatment(treatmentId),
       msg: 'tratamiento cancelado'
     });
   } catch (error) {

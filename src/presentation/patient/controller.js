@@ -22,12 +22,12 @@ const getPatient = async (patientId) => {
   });
 
   return ({
-    ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt']),
+    ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt', 'treatments']),
     user: omit(patient.user.toJSON(), ['createdAt', 'updatedAt']),
-    treatments: patient.treatments.map(treatment => ({
+    treatmentsIds: patient.treatments.map(treatment => ({
       ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'createdAt', 'updatedAt', 'thethTreataments']),
       stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
-      theths: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt']))
+      thethIds: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt']))
     }))
   });
 }
@@ -53,12 +53,12 @@ const getPatients = async (req, res = response) => {
       ],
     });
     const formatPatients = await Promise.all([...patients.map(async patient => ({
-      ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt']),
+      ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt', 'treatments']),
       user: omit(patient.user.toJSON(), ['createdAt', 'updatedAt']),
-      treatments: patient.treatments.map(treatment => ({
+      treatmentsIds: patient.treatments.map(treatment => ({
         ...omit(treatment.toJSON(), ['administratorId', 'patientId', 'stageTypeId', 'thethTreataments', 'createdAt', 'updatedAt']),
         stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
-        theths: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt']))
+        thethIds: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt']))
       }))
     })
     )]);
