@@ -5,7 +5,7 @@ const numeroEnLetras = require('./convertNumbertoString');
 const { format } = require('date-fns');
 const esES = require('date-fns/locale/es')
 
-const generateDocument = async (order) => {
+const generatePdf = async (order) => {
   const fonts = {
     Roboto: {
       normal: path.join(__dirname, './../../assets/fonts/Roboto/Roboto-Regular.ttf'),
@@ -158,4 +158,4 @@ const generateDocument = async (order) => {
   });
 };
 
-module.exports = generateDocument;
+module.exports = generatePdf;

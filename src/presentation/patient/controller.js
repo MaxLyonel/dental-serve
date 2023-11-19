@@ -2,8 +2,19 @@ const { response } = require('express');
 const db = require('../../database/models');
 const { omit } = require("lodash");
 
-const getPatient = async (patientId) => {
-  const patient = await db.patient.findByPk(patientId, {
+const formatPatient = (patient) => ({
+  ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt', 'treatments']),
+  user: omit(patient.user.toJSON(), ['createdAt', 'updatedAt']),
+  treatmentsIds: patient.treatments.map(treatment => ({
+    ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'createdAt', 'updatedAt', 'thethTreataments']),
+    stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
+    thethIds: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt']))
+  }))
+});
+
+const functionGetPatient = async (patientId) => {
+  let queryOptions = {
+    where: { active: true },
     include: [
       { model: db.user },
       {
@@ -19,53 +30,21 @@ const getPatient = async (patientId) => {
         ]
       }
     ],
-  });
-
-  return ({
-    ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt', 'treatments']),
-    user: omit(patient.user.toJSON(), ['createdAt', 'updatedAt']),
-    treatmentsIds: patient.treatments.map(treatment => ({
-      ...omit(treatment.toJSON(), ['administratorId', 'stageTypeId', 'createdAt', 'updatedAt', 'thethTreataments']),
-      stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
-      thethIds: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt']))
-    }))
-  });
+  };
+  if (patientId) {
+    const patient = await db.patient.findByPk(patientId, queryOptions);
+    return formatPatient(patient);
+  } else {
+    const patients = await db.patient.findAll(queryOptions);
+    return patients.map(patient => formatPatient(patient))
+  }
 }
 
 const getPatients = async (req, res = response) => {
   try {
-    const patients = await db.patient.findAll({
-      where: { active: true },
-      include: [
-        { model: db.user },
-        {
-          model: db.treatment,
-          include: [
-            { model: db.stageType },
-            {
-              model: db.thethTreatament,
-              include: [
-                { model: db.theth }
-              ]
-            }
-          ]
-        }
-      ],
-    });
-    const formatPatients = await Promise.all([...patients.map(async patient => ({
-      ...omit(patient.toJSON(), ['active', 'userId', 'responsableId', 'createdAt', 'updatedAt', 'treatments']),
-      user: omit(patient.user.toJSON(), ['createdAt', 'updatedAt']),
-      treatmentsIds: patient.treatments.map(treatment => ({
-        ...omit(treatment.toJSON(), ['administratorId', 'patientId', 'stageTypeId', 'thethTreataments', 'createdAt', 'updatedAt']),
-        stageType: omit(treatment.stageType.toJSON(), ['state', 'createdAt', 'updatedAt']),
-        thethIds: treatment.thethTreataments.map(thethTreatament => omit(thethTreatament.theth.toJSON(), ['createdAt', 'updatedAt']))
-      }))
-    })
-    )]);
-
     return res.json({
       ok: true,
-      patients: formatPatients
+      patients: await functionGetPatient()
     });
   } catch (error) {
     console.log(error)
@@ -106,7 +85,7 @@ const createPatient = async (req, res = response) => {
 
     return res.json({
       ok: true,
-      patient: await getPatient(patient.id),
+      patient: await functionGetPatient(patient.id),
       msg: 'paciente registrado exitosamente'
     });
   } catch (error) {
@@ -146,7 +125,7 @@ const updatePatient = async (req, res = response) => {
 
     return res.json({
       ok: true,
-      patient: await getPatient(patientId),
+      patient: await functionGetPatient(patientId),
       msg: 'paciente editado exitosamente'
     });
 
@@ -179,7 +158,7 @@ const deletePatient = async (req, res = response) => {
     )
     return res.json({
       ok: true,
-      patient: await getPatient(patientId),
+      patient: await functionGetPatient(patientId),
       msg: 'paciente eliminado'
     });
 
@@ -193,6 +172,7 @@ const deletePatient = async (req, res = response) => {
 }
 
 module.exports = {
+  functionGetPatient,
   getPatients,
   createPatient,
   updatePatient,

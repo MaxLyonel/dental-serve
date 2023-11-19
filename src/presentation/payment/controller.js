@@ -1,7 +1,7 @@
 const { response } = require('express');
 const db = require('../../database/models');
 const { omit } = require("lodash");
-const generateDocument = require('./../../config/generatePdf');
+const generatePdf = require('./../../config/generatePdf');
 
 const getPayment = async (paymentId) => {
   const payment = await db.payment.findByPk(paymentId, {
@@ -14,6 +14,9 @@ const getPayment = async (paymentId) => {
             include: [
               { model: db.user }
             ]
+          },
+          {
+            model: db.payment,
           }
         ]
       },
@@ -55,10 +58,11 @@ const createPayment = async (req, res = response) => {
       discount: payment.discount,
     }
     console.log(body)
-    const { pdfBase64 } = await generateDocument(body);
+    const { pdfBase64 } = await generatePdf(body);
     return res.json({
       ok: true,
-      payment: payment,
+      payment: newPayment,
+      amountDue: payment.treatment.totalAmount - ([...payment.treatment.payments.map(payment => payment.amount)].reduce((amount, number) => amount + number, 0)),
       msg: 'pago registrado exitosamente',
       document: pdfBase64
     });

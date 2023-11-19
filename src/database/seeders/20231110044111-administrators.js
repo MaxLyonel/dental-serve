@@ -6,6 +6,13 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     //crear permisos
     await queryInterface.bulkInsert('permissions', [
+      //administradores
+      {
+        name: 'ver administradores',
+        module: 'administradores',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
       {
         name: 'crear administradores',
         module: 'administradores',
@@ -24,8 +31,15 @@ module.exports = {
         createdAt: new Date(),
         updatedAt: new Date()
       },
+      //roles
       {
-        name: 'crear roles ',
+        name: 'ver roles',
+        module: 'roles',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'crear roles',
         module: 'roles',
         createdAt: new Date(),
         updatedAt: new Date()
@@ -41,7 +55,84 @@ module.exports = {
         module: 'roles',
         createdAt: new Date(),
         updatedAt: new Date()
-      }
+      },
+      //permisos
+      {
+        name: 'ver permisos',
+        module: 'permisos',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      //pacientes
+      {
+        name: 'ver pacientes',
+        module: 'pacientes',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'crear pacientes',
+        module: 'pacientes',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'editar pacientes',
+        module: 'pacientes',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'eliminar pacientes',
+        module: 'pacientes',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      //calendario
+      {
+        name: 'ver calendario',
+        module: 'calendario',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'efectuar pago',
+        module: 'calendario',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'eliminar pago',
+        module: 'calendario',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      //tratamiento
+      {
+        name: 'crear tratamiento',
+        module: 'tratamiento',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'editar tratamiento',
+        module: 'tratamiento',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'eliminar tratamiento',
+        module: 'tratamiento',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      //reporte
+      {
+        name: 'ver reportes',
+        module: 'reporte',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
     ]);
 
     //crear rol
