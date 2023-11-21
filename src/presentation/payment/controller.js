@@ -56,6 +56,8 @@ const createPayment = async (req, res = response) => {
       date: payment.createdAt,
       amount: payment.amount,
       discount: payment.discount,
+      correlative: payment.id,
+
     }
     console.log(body)
     const { pdfBase64 } = await generatePdf(body);

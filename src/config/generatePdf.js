@@ -20,18 +20,16 @@ const generatePdf = async (order) => {
     content: [
       {
         table: {
-          widths: ['*', '13%', '19%', '*'],
+          widths: ['*', '13%', '50%', '*'],
           body: [
             [
               { text: 'DENTISTA', style: 'tableHeader' },
               '',
               { text: 'COMPROBANTE N°', style: 'tableComprobante', },
-              '',
-              // `${order.id}`
+              `${order.correlative}`
             ],
             [
-              // { text: `Sucursal: ${order.warehouseId.name}`, style: 'tableHeader' },
-              '',
+              { text: `Sucursal: Casa Matriz`, style: 'tableHeader' },
               '',
               '',
               '',
@@ -78,45 +76,37 @@ const generatePdf = async (order) => {
         layout: 'noBorders',
       },
       { text: '\n' },
-      // {
-      //   table: {
-      //     widths: ['12%', '*', '20%', '15%'],
-      //     body: [
-      //       [
-      //         { text: 'CANTIDAD', style: 'tableHeader' },
-      //         { text: 'DESCRIPCION', style: 'tableHeader' },
-      //         { text: 'PRECIO UNIT.', style: 'tableHeader' },
-      //         { text: 'SUBTOTAL', style: 'tableHeader' },
-      //       ],
-      //       ...order.outputIds.map(element => {
-      //         return [
-      //           `${element.quantity}`,
-      //           `${element.productStatusId.productId.code} - ${element.productStatusId.productId.name} - ${element.productStatusId.name}`,
-      //           `${element.price}`,
-      //           `${element.quantity * element.price}`,
-      //         ]
-      //       })
+      {
+        table: {
+          widths: ['*'],
+          body: [
+            [
+              { text: 'CONCEPTO', style: 'tableHeader' },
+            ],
+            [
+              `${order.reason}`,
+            ]
 
-      //     ],
-      //   },
-      // },
+          ],
+        },
+      },
       {
         table: {
           widths: ['*', '36.8%'],
           body: [
             [
-              // { text: `Son: ${numeroEnLetras(order.total)} 00/100 Bolivianos`, style: 'tableTitle' },
-              // {
-              //   table: {
-              //     widths: ['57.7%', '*'],
-              //     body: [
-              //       [
-              //         { text: 'TOTAL:', style: 'tableComprobante' },
-              //         `${order.total}`
-              //       ],
-              //     ]
-              //   }
-              // }
+              { text: `Son: ${numeroEnLetras(order.amount)} 00/100 Bolivianos`, style: 'tableTitle' },
+              {
+                table: {
+                  widths: ['57.7%', '*'],
+                  body: [
+                    [
+                      { text: 'TOTAL:', style: 'tableComprobante' },
+                      `${order.amount}`
+                    ],
+                  ]
+                }
+              }
             ]
           ]
         },
