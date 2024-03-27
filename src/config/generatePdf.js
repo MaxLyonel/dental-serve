@@ -23,7 +23,7 @@ const generatePdf = async (order) => {
           widths: ['*', '13%', '50%', '*'],
           body: [
             [
-              { text: 'DENTISTA', style: 'tableHeader' },
+              { text: 'EXMA EVENTOS', style: 'tableHeader' },
               '',
               { text: 'COMPROBANTE N°', style: 'tableComprobante', },
               `${order.correlative}`
